@@ -177,6 +177,7 @@ static void vmpu_box_index_init(uint8_t box_id, uint32_t context_size, uint32_t 
     }
 
     void *box_bss = g_svc_cx_context_ptr[box_id];
+    memset(box_bss, 0, sizeof(UvisorBoxIndex) + context_size + heap_size);
 
     /* the box index is at the beginning of the bss section */
     UvisorBoxIndex *const index = box_bss;
@@ -189,12 +190,6 @@ static void vmpu_box_index_init(uint8_t box_id, uint32_t context_size, uint32_t 
     index->process_heap_size = heap_size;
     /* active heap pointer is NULL */
     index->active_heap = NULL;
-
-    memset(index->mutex_data, 0, sizeof(index->mutex_data));
-    /* point the mutex pointer to the data */
-    index->mutex = &(index->mutex_data);
-    /* set the id to NULL */
-    index->mutex_id = NULL;
 
     /* cache the box id */
     index->box_id = box_id;

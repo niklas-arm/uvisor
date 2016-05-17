@@ -47,17 +47,17 @@ static uint8_t page_count_total;
 void page_allocator_init(void *heap_start, void *heap_end, uint32_t config_page_size)
 {
     /* make sure the UVISOR_PAGE_UNUSED is definitely NOT a valid box id! */
-    if (vmpu_is_box_id_valid(UVISOR_PAGE_UNUSED))
+    if (vmpu_is_box_id_valid(UVISOR_PAGE_UNUSED)) {
         HALT_ERROR(SANITY_CHECK_FAILED,
             "UVISOR_PAGE_UNUSED (%u) must not be a valid box id!\n",
             UVISOR_PAGE_UNUSED);
+    }
 
     /* page size has to be at least 32B */
     config_page_size = config_page_size < 32 ? 32 : config_page_size;
     /* align the page size to the next largest power of two for ARMv7-M only */
     const size_t mask = (1 << (vmpu_bits(config_page_size) - 1)) - 1;
     page_size = (config_page_size + mask) & ~mask;
-    page_size = 16*1024;
 
     uint32_t start = (uint32_t)heap_start;
     /* round up to the nearest page aligned memory address */
@@ -69,7 +69,9 @@ void page_allocator_init(void *heap_start, void *heap_end, uint32_t config_page_
     /* how many pages can we fit in here? */
     page_count_total = ((uint32_t)heap_end - start) / page_size;
     /* clamp page count to table size */
-    if (page_count_total > UVISOR_PAGE_TABLE_MAX_COUNT) page_count_total = UVISOR_PAGE_TABLE_MAX_COUNT;
+    if (page_count_total > UVISOR_PAGE_TABLE_MAX_COUNT) {
+        page_count_total = UVISOR_PAGE_TABLE_MAX_COUNT;
+    }
     page_count_free = page_count_total;
     /* remember the end of the heap */
     page_heap_end = page_heap_start + page_count_free * page_size;

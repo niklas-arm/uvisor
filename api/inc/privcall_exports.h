@@ -25,8 +25,14 @@
 
 struct uvisor_privcall_table {
     uint32_t version;
-    void (*box_switch)(uint8_t);
-    uint8_t *active_box;
+    void (*process_switch)(uint8_t id);
+
+    int (*get_process_id)(void *context);
+    uint8_t *active_process;
+
+    void* (*thread_create)(int id, void *context);
+    void (*thread_destroy)(void *context);
+    void (*thread_switch)(void *context);
 };
 
 extern const struct uvisor_privcall_table uvisor_privcall;
