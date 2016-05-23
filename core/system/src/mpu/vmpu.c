@@ -165,8 +165,12 @@ static void vmpu_sanity_check_box_namespace(int box_id, const char *const box_na
     } while (box_namespace[length]);
 }
 
-static void vmpu_box_index_init(uint8_t box_id, uint32_t context_size, uint32_t heap_size)
+static void vmpu_box_index_init(uint8_t box_id, const UvisorBoxConfig *const config)
 {
+    void *box_bss;
+    UvisorBoxIndex *index;
+    uint32_t heap_size = config->heap_size;
+
     if (box_id == 0)
     {
         /* box 0 still uses the main heap to be backwards compatible */
@@ -176,15 +180,15 @@ static void vmpu_box_index_init(uint8_t box_id, uint32_t context_size, uint32_t 
                     sizeof(UvisorBoxIndex);
     }
 
-    void *box_bss = g_svc_cx_context_ptr[box_id];
-    memset(box_bss, 0, sizeof(UvisorBoxIndex) + context_size + heap_size);
+    box_bss = g_svc_cx_context_ptr[box_id];
+    // memset(box_bss, 0, sizeof(UvisorBoxIndex) + context_size + heap_size);
 
     /* the box index is at the beginning of the bss section */
-    UvisorBoxIndex *const index = box_bss;
+    index = box_bss;
     box_bss += sizeof(UvisorBoxIndex);
     /* initialize user context */
-    index->ctx = context_size ? box_bss : NULL;
-    box_bss += context_size;
+    index->ctx = config->context_size ? box_bss : NULL;
+    box_bss += config->context_size;
     /* initialize process heap */
     index->process_heap = heap_size ? box_bss : NULL;
     index->process_heap_size = heap_size;
@@ -193,6 +197,9 @@ static void vmpu_box_index_init(uint8_t box_id, uint32_t context_size, uint32_t 
 
     /* cache the box id */
     index->box_id = box_id;
+
+    /* point to the box config */
+    index->config = config;
 }
 
 static void vmpu_load_boxes(void)
@@ -258,8 +265,7 @@ static void vmpu_load_boxes(void)
         /* initialize box index */
         vmpu_box_index_init(
             box_id,
-            (*box_cfgtbl)->context_size,
-            (*box_cfgtbl)->heap_size
+            *box_cfgtbl
         );
 
         /* enumerate box ACLs */

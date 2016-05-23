@@ -177,6 +177,8 @@ typedef struct
     void *active_heap;
     /* cache of the box_id */
     int box_id;
+    /* pointer to the box config */
+    const UvisorBoxConfig *config;
 
     /* id of the mutex */
     void *mutex_id;
