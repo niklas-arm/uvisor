@@ -143,6 +143,8 @@ typedef struct
     UvisorBoxAcl acl;
 } UVISOR_PACKED UvisorBoxAclItem;
 
+typedef void (*UvisorBoxMainFunction)(void);
+
 typedef struct
 {
     uint32_t magic;
@@ -159,6 +161,9 @@ typedef struct
     uint32_t stack_size;
     uint32_t context_size;
     uint32_t heap_size;
+
+    UvisorBoxMainFunction main_function;
+    uint32_t main_priority;
 
     const char* box_namespace;
     const UvisorBoxAclItem* const acl_list;

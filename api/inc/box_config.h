@@ -47,6 +47,8 @@ UVISOR_EXTERN const uint32_t __uvisor_mode;
         0, \
         0, \
         NULL, \
+        0, \
+        NULL, \
         acl_list, \
         acl_list_count \
     }; \
@@ -76,6 +78,8 @@ UVISOR_EXTERN const uint32_t __uvisor_mode;
         UVISOR_MIN_STACK(stack_size), \
         context_size, \
         __uvisor_box_heapsize, \
+        __uvisor_box_main_function, \
+        __uvisor_box_main_priority, \
         __uvisor_box_namespace, \
         acl_list, \
         acl_list_count \
@@ -118,6 +122,10 @@ UVISOR_EXTERN const uint32_t __uvisor_mode;
 
 #define UVISOR_BOX_HEAPSIZE(heap_size) \
     static const uint32_t __uvisor_box_heapsize = heap_size;
+
+#define UVISOR_BOX_MAIN(function, priority) \
+    static const UvisorBoxMainFunction __uvisor_box_main_function = function; \
+    static const uint32_t __uvisor_box_main_priority = (uint32_t)priority;
 
 #define uvisor_ctx (*__uvisor_ps)
 
