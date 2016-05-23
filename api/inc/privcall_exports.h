@@ -23,12 +23,24 @@
  * a different header file to understand the uvisor_privcall_table. */
 #define UVISOR_PRIVCALL_VERSION 0
 
+typedef void (*UvisorProcessMainFunction)(void);
+
+typedef struct {
+    UvisorProcessMainFunction main_function;
+    void *stack_pointer;
+    uint32_t stack_size;
+    uint32_t priority;
+    void *context;
+} UvisorProcessMain;
+
 struct uvisor_privcall_table {
     uint32_t version;
     void (*process_switch)(uint8_t id);
 
     int (*get_process_id)(void *context);
     uint8_t *active_process;
+
+    int (*get_next_process_main)(UvisorProcessMain *box_main);
 
     void* (*thread_create)(int id, void *context);
     void (*thread_destroy)(void *context);
