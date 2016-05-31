@@ -16,6 +16,7 @@
  */
 #include <uvisor.h>
 #include "context.h"
+#include "secure_gateway.h"
 #include "svc.h"
 #include "vmpu.h"
 #include "debug.h"
