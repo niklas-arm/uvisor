@@ -123,10 +123,16 @@ void vmpu_mem_switch(uint8_t src_box, uint8_t dst_box)
 
     box = &g_mem_box[dst_box];
 
-    /* For box zero, disable all user MPU regions and return. */
+    /* For box zero, only copy the page heap ACLs, disable the remaining pages
+     * and then return. */
     if(src_box && !dst_box) {
-        for (t = K64F_MPU_REGIONS_USER; t < K64F_MPU_REGIONS_MAX; t++) {
-            ((MPU_Region *) MPU->WORD[t])->CONTROL = 0;
+        g_mpu_slot = K64F_MPU_REGIONS_STATIC;
+        t = K64F_MPU_REGIONS_MAX - K64F_MPU_REGIONS_STATIC;
+        if (page_allocator_iterate_active_pages(vmpu_mem_push_page_acl_iterator) < t) {
+            /* Disable all remaining regions. */
+            for (t = g_mpu_slot; t < K64F_MPU_REGIONS_MAX; t++) {
+                ((MPU_Region *) MPU->WORD[t])->CONTROL = 0;
+            }
         }
         return;
     }
