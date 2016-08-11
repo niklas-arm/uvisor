@@ -58,8 +58,6 @@ uint8_t page_allocator_get_page_from_address(uint32_t address);
 extern uint32_t g_page_size;
 /* Points to the beginning of the page heap. */
 extern const void * g_page_heap_start;
-/* Contains the total number of available pages. */
-extern uint8_t g_page_count_total;
 /* Contains the page usage mapped by owner. */
 extern uint32_t g_page_owner_map[UVISOR_MAX_BOXES][(UVISOR_PAGE_MAX_COUNT + 31) / 32];
 

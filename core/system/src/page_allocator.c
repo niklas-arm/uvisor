@@ -42,9 +42,9 @@
 #include "page_allocator_config.h"
 
 /* Contains the page usage mapped by owner. */
-uint32_t g_page_owner_map[UVISOR_MAX_BOXES][(UVISOR_PAGE_MAX_COUNT + 31) / 32];
+uint32_t g_page_owner_map[UVISOR_MAX_BOXES][UVISOR_PAGE_MAP_COUNT];
 /* Contains total page usage. */
-uint32_t g_page_usage_map[(UVISOR_PAGE_MAX_COUNT + 31) / 32];
+uint32_t g_page_usage_map[UVISOR_PAGE_MAP_COUNT];
 /* Contains the configured page size. */
 uint32_t g_page_size;
 /* Points to the beginning of the page heap. */
