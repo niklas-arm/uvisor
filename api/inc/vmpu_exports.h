@@ -219,6 +219,11 @@ typedef struct {
      * This is set to `NULL` by uVisor, signalling to the user lib that the
      * box heap needs to be initialized before use! */
     void * active_heap;
+
+    /* Box IDs */
+    int box_id_self;
+    int box_id_caller;
+
     /* Pointer to the box config */
     const UvisorBoxConfig * config;
 } UVISOR_PACKED UvisorBoxIndex;
