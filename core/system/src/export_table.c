@@ -23,6 +23,7 @@
 #include "api/inc/vmpu_exports.h"
 #include "context.h"
 #include "halt.h"
+#include "vmpu.h"
 
 /* By default a maximum of 16 threads are allowed. This can only be overridden
  * by the porting engineer for the current platform. */
@@ -145,7 +146,7 @@ static int fetch_destination_box(const TFN_Ptr function)
      * the destinations for now until we do it right. */
     size_t box_id;
 
-    for (box_id = 1; box_id < UVISOR_MAX_BOXES; box_id++) {
+    for (box_id = 1; box_id < g_vmpu_box_count; box_id++) {
         UvisorBoxIndex * box_index = (UvisorBoxIndex *) g_context_current_states[box_id].bss;
         uvisor_pool_t const * pool = box_index->rpc_fn_group_pool;
         uvisor_rpc_fn_group_t const * array = pool->array;
@@ -208,7 +209,7 @@ static void drain_message_queue(void)
         const int destination_box = fetch_destination_box(uvisor_msg.function);
         if (destination_box <= 0) {
             /* XXX */
-            HALT_ERROR(SANITY_CHECK_FAILED, "We couldn't find the destination box, which sucks.");
+            goto put_it_back;
         }
 
         /* Switch to the destination box if the thread is in a different
@@ -263,11 +264,13 @@ static void drain_message_queue(void)
         /* If there was no room in the destination queue: */
         if (dest_slot >= dest_queue->pool.num)
         {
+            int status;
+put_it_back:
             /* Put the message back into the source queue. This applies
              * backpressure on the caller when the callee is too busy. Note
              * that no data needs to be copied; only the source queue's
              * management array is modified. */
-            int status = uvisor_pool_queue_try_enqueue(source_queue, source_slot);
+            status = uvisor_pool_queue_try_enqueue(source_queue, source_slot);
             if (status) {
                 /* XXX It is bad to take down the entire system. It is also bad
                  * to lose messages due to not being able to put them back in
