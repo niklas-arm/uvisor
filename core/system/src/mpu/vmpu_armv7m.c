@@ -229,7 +229,7 @@ static int vmpu_mem_push_page_acl_iterator(uint8_t mask, uint8_t index)
     uint32_t size = g_page_size * 8;
     vmpu_region_translate_acl(
         &region,
-        ((uint32_t) __uvisor_config.page_end - size * (index + 1)),
+        (g_page_head_end_rounded - size * (index + 1)),
         size,
         UVISOR_TACLDEF_DATA | UVISOR_TACL_EXECUTE,
         ~mask
@@ -478,4 +478,10 @@ void vmpu_arch_init_hw(void)
         UVISOR_TACLDEF_DATA | UVISOR_TACL_EXECUTE,
         subregions_disable_mask
     );
+
+    if (subregions_size < *__uvisor_config.page_size) {
+        HALT_ERROR(SANITY_CHECK_FAILED,
+                   "The page size (%ukB) must not be larger than 1/8th of SRAM (%ukB).",
+                   *__uvisor_config.page_size / 1024, subregions_size / 1024);
+    }
 }
