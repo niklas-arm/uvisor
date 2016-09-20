@@ -361,6 +361,15 @@ void vmpu_acl_stack(uint8_t box_id, uint32_t bss_size, uint32_t stack_size)
     g_context_current_states[box_id].bss = slots_ctx ? box_mem_pos : (uint32_t) NULL;
     /* ensure stack band on top for stack underflow dectection */
     g_context_current_states[box_id].sp = (box_mem_pos + size) - 8;
+    /* Save the initial stack pointer. */
+    g_context_current_states[box_id].isp = g_context_current_states[box_id].sp;
+    g_context_current_states[box_id].riss = size - 8;
+
+    DPRINTF("\tbox[%i] isp=0x%08x bss[0x%08x, 0x%08x]\n\r",
+        box_id,
+        g_context_current_states[box_id].sp,
+        g_context_current_states[box_id].bss,
+        g_context_current_states[box_id].bss + size);
 
     /* Reset uninitialized secured box context. */
     if (slots_ctx) {

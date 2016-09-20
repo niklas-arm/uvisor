@@ -199,6 +199,7 @@ void vmpu_acl_stack(uint8_t box_id, uint32_t bss_size, uint32_t stack_size)
     /* set stack pointer to box stack size minus guard band */
     g_box_mem_pos += stack_size;
     g_context_current_states[box_id].sp = g_box_mem_pos;
+    g_context_current_states[box_id].isp = g_box_mem_pos;
     /* add stack protection band */
     g_box_mem_pos += UVISOR_STACK_BAND_SIZE;
 
@@ -206,6 +207,7 @@ void vmpu_acl_stack(uint8_t box_id, uint32_t bss_size, uint32_t stack_size)
     assert(bss_size != 0);
     bss_size = UVISOR_REGION_ROUND_UP(bss_size);
     g_context_current_states[box_id].bss = g_box_mem_pos;
+    g_context_current_states[box_id].riss = bss_size;
 
     DPRINTF("erasing box context at 0x%08X (%u bytes)\n",
         g_box_mem_pos,

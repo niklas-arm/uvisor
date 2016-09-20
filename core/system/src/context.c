@@ -100,13 +100,24 @@ uint32_t context_forge_exc_sf(uint32_t src_sp, uint8_t dst_id, uint32_t dst_fn, 
 {
     uint32_t dst_sp;
     uint32_t exc_sf_alignment;
+    const uint32_t lower_isp_bound = (g_context_current_states[dst_id].isp - g_context_current_states[dst_id].riss);
+    const uint32_t upper_isp_bound = g_context_current_states[dst_id].isp;
 
     /* Destination box: Gather information from the current state. */
     dst_sp = g_context_current_states[dst_id].sp;
 
+    /* [lower] < dst_sp <= [upper] */
+    assert(dst_sp <= upper_isp_bound);
+    (void) upper_isp_bound;
+
     /* Forge an exception stack frame in the destination box stack. */
     exc_sf_alignment = (dst_sp & 0x4) ? 1 : 0;
     dst_sp -= (CONTEXT_SWITCH_EXC_SF_BYTES + exc_sf_alignment);
+
+    /* Check that the dst_sp is really within the destination stack */
+    /* [lower] < dst_sp <= [upper] */
+    assert(lower_isp_bound < dst_sp);
+    (void) lower_isp_bound;
 
     /* Populate the new exception stack frame. */
 

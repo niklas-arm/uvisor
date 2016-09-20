@@ -78,6 +78,8 @@ typedef struct {
 typedef struct {
     uint32_t sp;        /**< Stack pointer */
     uint32_t bss;       /**< Bss pointer */
+    uint32_t isp;       /**< Initial stack pointer */
+    uint32_t riss;      /**< Rounded initial stack size */
 } TContextCurrentState;
 
 /** Currently active box */
