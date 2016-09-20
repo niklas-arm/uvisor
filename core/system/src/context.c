@@ -116,7 +116,7 @@ uint32_t context_forge_exc_sf(uint32_t src_sp, uint8_t dst_id, uint32_t dst_fn, 
 
     /* Forge an exception stack frame in the destination box stack. */
     exc_sf_alignment = (dst_sp & 0x4) ? 1 : 0;
-    dst_sp -= (CONTEXT_SWITCH_EXC_SF_SIZE + exc_sf_alignment);
+    dst_sp -= (CONTEXT_SWITCH_EXC_SF_BYTES + exc_sf_alignment);
 
     /* Populate the new exception stack frame. */
 
@@ -148,7 +148,7 @@ void context_discard_exc_sf(uint8_t dst_id, uint32_t dst_sp)
     uint32_t exc_sf_alignment;
 
     exc_sf_alignment = (((uint32_t *) dst_sp)[7] & 0x4) ? 1 : 0;
-    g_context_current_states[dst_id].sp = dst_sp + CONTEXT_SWITCH_EXC_SF_SIZE + exc_sf_alignment;
+    g_context_current_states[dst_id].sp = dst_sp + CONTEXT_SWITCH_EXC_SF_BYTES + exc_sf_alignment;
 }
 
 /** Validate an exception stack frame, checking that the currently active box
@@ -168,13 +168,13 @@ uint32_t context_validate_exc_sf(uint32_t exc_sp)
     int i;
 
     /* Check the regular exception stack frame. */
-    for (i = 0; i < CONTEXT_SWITCH_EXC_SF_SIZE; i++) {
+    for (i = 0; i < CONTEXT_SWITCH_EXC_SF_WORDS; i++) {
         vmpu_unpriv_uint32_read(exc_sp + sizeof(uint32_t) * i);
     }
 
     /* Read one additional word if the stack frame is not aligned. */
     if (exc_sp & 0x4) {
-        vmpu_unpriv_uint32_read(exc_sp + sizeof(uint32_t) * CONTEXT_SWITCH_EXC_SF_SIZE);
+        vmpu_unpriv_uint32_read(exc_sp + CONTEXT_SWITCH_EXC_SF_BYTES);
     }
 
     return exc_sp;
