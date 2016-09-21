@@ -50,8 +50,13 @@ static int thread_ctx_valid(UvisorThreadContext * context)
 
 static void * thread_create(int id, void * c)
 {
+    extern void debug_mpu_config(void);
+    debug_mpu_config();
     (void) id;
-    UvisorThreadContext * context = c;
+    uint32_t * cs = c;
+    DPRINTF("t[%d, 0x%08x] stack[0x%08x, 0x%08x]\r\n", g_active_box, cs[1], cs[2], cs[2] + cs[3]);
+
+    UvisorThreadContext * context = (void *) cs[0];
     const UvisorBoxIndex * const index =
             (UvisorBoxIndex * const) *(__uvisor_config.uvisor_box_context);
     /* Search for a free slot in the tasks meta data. */
@@ -89,8 +94,12 @@ static void thread_destroy(void * c)
     }
 }
 
+bool is_in_pend_sv = false;
+
 static void thread_switch(void * c)
 {
+    is_in_pend_sv = true;
+    __disable_irq();
     UvisorThreadContext * context = c;
     UvisorBoxIndex * index;
     if (context == NULL) {
@@ -119,6 +128,8 @@ static void thread_switch(void * c)
             index->active_heap = context->allocator;
         }
     }
+    is_in_pend_sv = false;
+    __enable_irq();
 }
 
 static void boxes_init(void)

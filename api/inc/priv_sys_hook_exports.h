@@ -31,18 +31,20 @@ typedef struct {
     void (*priv_pendsv)(void);
     void (*priv_systick)(void);
     uint32_t (*priv_os_suspend)(void);
+    void (*priv_os_init)(void);
 } UvisorPrivSystemHooks;
 
 /* Use this macro to register privileged system IRQ hooks. If you don't want to
  * register a particular privileged system IRQ hook, you can supply NULL for
  * that hook parameter. */
-#define UVISOR_SET_PRIV_SYS_HOOKS(priv_svc_0_, priv_pendsv_, priv_systick_, priv_os_suspend_) \
+#define UVISOR_SET_PRIV_SYS_HOOKS(priv_svc_0_, priv_pendsv_, priv_systick_, priv_os_suspend_, priv_os_init_) \
     UVISOR_EXTERN_C_BEGIN \
     const UvisorPrivSystemHooks __uvisor_priv_sys_hooks = { \
         .priv_svc_0 = priv_svc_0_, \
         .priv_pendsv = priv_pendsv_, \
         .priv_systick = priv_systick_, \
         .priv_os_suspend = priv_os_suspend_, \
+        .priv_os_init = priv_os_init_, \
     }; \
     UVISOR_EXTERN_C_END
 

@@ -481,6 +481,9 @@ void vmpu_init_post(void)
 
 int vmpu_box_id_self(void)
 {
+    static uint32_t counter=0;
+    DPRINTF("vmpu_box_id_self (svc 15) called %u times.\n", counter);
+    counter++;
     return g_active_box;
 }
 
