@@ -42,7 +42,7 @@ void debug_fault_memmanage(void)
 void debug_mpu_config(void)
 {
     uint32_t dregion, ctrl, size, rasr, ap, tex, srd;
-    char dim[][3] = {"B ", "KB", "MB", "GB"};
+    char dim[][3] = {" B", "KB", "MB", "GB"};
     int i;
 
     dprintf("* MPU CONFIGURATION\n\r");

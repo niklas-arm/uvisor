@@ -128,6 +128,11 @@ void vmpu_sys_mux_handler(uint32_t lr, uint32_t msp)
     /* PSP at fault */
     psp = __get_PSP();
 
+    extern bool is_fault_in_pend_sv;
+    if (is_fault_in_pend_sv) {
+        DPRINTF("PendSV halt error!\n");
+    }
+
     switch(ipsr)
     {
         case MemoryManagement_IRQn:
@@ -239,9 +244,12 @@ static int vmpu_mem_push_page_acl_iterator(uint8_t mask, uint8_t index)
     return 0;
 }
 
+bool is_fault_in_pend_sv = false;
+
 /* FIXME: added very simple MPU region switching - optimize! */
 void vmpu_switch(uint8_t src_box, uint8_t dst_box)
 {
+    __disable_irq();
     uint32_t dst_count;
     const MpuRegion * region;
 
@@ -252,6 +260,14 @@ void vmpu_switch(uint8_t src_box, uint8_t dst_box)
     }
 
     vmpu_mpu_invalidate();
+
+    extern bool is_in_pend_sv;
+    if (is_in_pend_sv) {
+        is_fault_in_pend_sv = true;
+        volatile uint32_t ii = 0;
+        while(ii++ < 100000) ;
+        is_fault_in_pend_sv = false;
+    }
 
     /* Update target box first to make target stack available. */
     vmpu_region_get_for_box(dst_box, &region, &dst_count);
@@ -280,6 +296,7 @@ void vmpu_switch(uint8_t src_box, uint8_t dst_box)
         while (dst_count-- && vmpu_mpu_push(region++, 1)) ;
     }
 
+    __enable_irq();
 }
 
 void vmpu_load_box(uint8_t box_id)

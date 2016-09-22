@@ -433,6 +433,7 @@ void UVISOR_NAKED unvic_gateway_in(uint32_t svc_sp, uint32_t svc_pc)
     );
 }
 
+
 /** Perform a context switch-in as a result of an interrupt request.
  *
  * @internal
@@ -485,6 +486,10 @@ uint32_t unvic_gateway_context_switch_in(uint32_t svc_sp, uint32_t svc_pc)
 
     /* Forge a stack frame for the destination box. */
     dst_sp = context_forge_exc_sf(src_sp, dst_id, dst_fn, unvic_thunk, xpsr, 0);
+
+    /* Suspend the OS. */
+    SysTick->CTRL = 0;
+    SCB->ICSR = SCB_ICSR_PENDSTCLR_Msk;
 
     /* Perform the context switch-in to the destination box. */
     /* This function halts if it finds an error. */
@@ -558,6 +563,12 @@ void unvic_gateway_context_switch_out(uint32_t svc_sp, uint32_t msp)
 
     /* Re-privilege execution. */
     __set_CONTROL(__get_CONTROL() & ~2);
+
+    /* Suspend the OS. */
+    SysTick->CTRL =
+        SysTick_CTRL_CLKSOURCE_Msk |
+        SysTick_CTRL_ENABLE_Msk |
+        SysTick_CTRL_TICKINT_Msk;
 }
 
 void unvic_init(void)

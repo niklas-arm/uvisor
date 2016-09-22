@@ -129,6 +129,10 @@ static void load_priv_sys_hooks(void)
         g_priv_sys_hooks.priv_uvisor_semaphore_post =
             __uvisor_config.priv_sys_hooks->priv_uvisor_semaphore_post;
     }
+
+    if (__uvisor_config.priv_sys_hooks->priv_os_init) {
+        g_priv_sys_hooks.priv_os_init = __uvisor_config.priv_sys_hooks->priv_os_init;
+    }
 }
 
 UVISOR_NOINLINE void uvisor_init_post(void)
@@ -182,6 +186,8 @@ void main_entry(void)
 
         /* finish initialization */
         uvisor_init_post();
+
+        __uvisor_config.priv_sys_hooks->priv_os_init();
 
         /* switch to unprivileged mode; this is possible as uvisor code is
          * readable by unprivileged code and only the key-value database is
