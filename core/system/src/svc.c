@@ -37,6 +37,12 @@ void __svc_not_implemented(void)
     HALT_ERROR(NOT_IMPLEMENTED, "function not implemented\n\r");
 }
 
+static void do_nothing(void) {
+    static uint32_t counter = 0;
+    DPRINTF("svc 15 called %u times\n", counter);
+    counter++;
+}
+
 /* SVC handlers */
 const void *g_svc_vtor_tbl[] = {
     __svc_not_implemented,      //  0
@@ -54,7 +60,7 @@ const void *g_svc_vtor_tbl[] = {
     benchmark_stop,             // 12
     halt_user_error,            // 13
     unvic_irq_level_get,        // 14
-    __svc_not_implemented,      // 15 Deprecated: vmpu_box_id_self
+    do_nothing,                 // 15 Deprecated: vmpu_box_id_self
     __svc_not_implemented,      // 16 Deprecated: vmpu_box_id_caller
     vmpu_box_namespace_from_id, // 17
     debug_reboot,               // 18
