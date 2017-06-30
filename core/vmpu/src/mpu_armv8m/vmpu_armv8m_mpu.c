@@ -15,12 +15,14 @@
  * limitations under the License.
  */
 #include <uvisor.h>
+#include <arm_cmse.h>
 #include "debug.h"
 #include "context.h"
 #include "halt.h"
 #include "memory_map.h"
 #include "vmpu.h"
 #include "vmpu_mpu.h"
+#include "page_allocator.h"
 
 /* This file contains the configuration-specific symbols. */
 #include "configurations.h"
@@ -227,35 +229,6 @@ static bool vmpu_region_is_ns(uint32_t rlar)
            (rlar & SAU_RLAR_ENABLE_Msk) == SAU_RLAR_ENABLE_Msk;
 }
 
-static bool vmpu_buffer_access_is_ok_static(uint32_t start_addr, uint32_t end_addr)
-{
-    /* NOTE: Buffers are not allowed to span more than 1 region. If they do
-     * span more than one region, access will be denied. */
-
-    /* Search through all static regions programmed into the SAU, until we find
-     * a region that contains both the start and end of our buffer. */
-    for (uint8_t slot = 0; slot < ARMv8M_SAU_REGIONS_STATIC; ++slot) {
-        SAU->RNR = slot;
-        uint32_t rlar = SAU->RLAR;
-
-        /* Is the region NS? */
-        if (!vmpu_region_is_ns(rlar)) {
-            continue;
-        }
-
-        uint32_t rbar = SAU->RBAR;
-        uint32_t start = rbar & ~0x1F; /* The bottom 5 bits are not part of the base address. */
-        uint32_t end = rlar | 0x1F; /* The bottom 5 bits are not part of the limit. */
-
-        /* Test that the buffer is fully contained in the region. */
-        if (value_in_range(start, end, start_addr) && value_in_range(start, end, end_addr)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 bool vmpu_buffer_access_is_ok(int box_id, const void * addr, size_t size)
 {
     uint32_t start_addr = (uint32_t) UVISOR_GET_NS_ALIAS(addr);
@@ -272,15 +245,26 @@ bool vmpu_buffer_access_is_ok(int box_id, const void * addr, size_t size)
         }
     } else {
         /* Check static regions. */
-        if (vmpu_buffer_access_is_ok_static(start_addr, end_addr)) {
+        if (cmse_check_address_range((void *) start_addr, size, CMSE_NONSECURE)) {
             return true;
         }
+        DPRINTF("0x%08x/%d NOT in SAU.\n!", start_addr, size);
     }
 
     assert(start_addr <= end_addr);
     if (start_addr > end_addr) {
         /* We couldn't determine the end of the buffer. */
         return false;
+    }
+
+    /* Check if addr range lies in page heap. */
+    uint8_t pa = page_allocator_get_page_from_address(start_addr);
+    uint8_t pe = page_allocator_get_page_from_address(end_addr);
+    if (pa != pe) {
+        return false;
+    }
+    else if (pa != UVISOR_BOX_ID_INVALID && page_allocator_map_get(g_page_owner_map[box_id], pa)) {
+        return true;
     }
 
     MpuRegion * region = vmpu_region_find_for_address(box_id, start_addr);
